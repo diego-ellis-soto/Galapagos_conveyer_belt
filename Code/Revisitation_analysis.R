@@ -1,3 +1,6 @@
+# To do: Fix - and + long/lat ponds 
+# Re-run recursive
+
 # Do a revisitatin analysis for all tortoises
 
 
@@ -34,16 +37,17 @@ all_studies <- getMovebank(entity_type = "study", login=loginStored)
 # sir_david <- tortugas[[2]]
 
 track_inters = read.csv('Data/tort_in_ponds_inters_less_columns.csv')
-nrow(track_inters)
 
-pond = read.csv('Data/Galapagos Water Sample Data_2018-24.csv') |> drop_na(Tourist_lagoon, Longitude, Latitude)
+pond = read.csv('Data/Galapagos Water Sample Data_2018-24.csv') |>
+  drop_na(Tourist_lagoon, Longitude, Latitude)
 
-
-pond.spdf <- SpatialPointsDataFrame(coords= ponds[,c('Longitude', 'Latitude')], data = ponds, proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")) # For the Points
+pond.spdf <- SpatialPointsDataFrame(coords= pond[,c('Longitude', 'Latitude')],
+                                    data = pond,
+                                    proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")) # For the Points
 
 utm_gal <- "+proj=utm +zone=15 +south +datum=WGS84 +no_defs +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"
-sir_david_sp <- spTransform(sir_david, utm_gal)
-roberto_sp <- spTransform(roberto, utm_gal)
+# sir_david_sp <- spTransform(sir_david, utm_gal)
+# roberto_sp <- spTransform(roberto, utm_gal)
 tortugas_sp = spTransform(tortugas, utm_gal)
 
 pond.spdf_UTM <- spTransform(pond.spdf, utm_gal)
