@@ -1,6 +1,7 @@
+conflicts_prefer(dplyr::filter)
 
-df_raw <- read_csv("/Users/diegoellis/Desktop/Projects/Postdoc/Pond_2025/Ponds_2024/Pond_parameter_data/Galapagos Water Sample Data_2018-24.csv")
-df_raw <- read_csv("/Users/diegoellis/Desktop/Projects/Postdoc/Pond_2025/Ponds_2024/Pond_parameter_data/Galapagos Water Sample Data_2018-24_most_up_to_date_2025.csv")
+df_raw <- read_csv("Data.Galapagos Water Sample Data_2018-24.csv")
+df_raw <- read_csv("Data/Galapagos Water Sample Data_2018-24_most_up_to_date_2025.csv")
 df <- df_raw
 
 df <- df %>%

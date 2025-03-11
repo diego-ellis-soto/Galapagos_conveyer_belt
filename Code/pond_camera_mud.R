@@ -4,13 +4,22 @@
 ###  
 ###########################################################
 
-require(tidyverse);require(raster); require(sp);require(ggplot2); require('ggfortify');require(cluster);library(lfda);require(mapview)
+require(tidyverse)
+require(raster)
+require(sp)
+require(ggplot2)
+require('ggfortify')
+require(cluster)
+library(lfda)
+require(mapview)
 library(ggsignif)
 require(conflicted)
 require(tidyverse)
 require(lubridate)
 require(plyr)
 require(raster)
+library(ggplot2)
+library(RColorBrewer)
 conflicts_prefer(dplyr::mutate)
 conflicts_prefer(raster::extract)
 conflicts_prefer(dplyr::desc)
@@ -19,22 +28,17 @@ conflicts_prefer(dplyr::arrange)
 
 # Trap camera data Montemar
 # mud = read.csv('/Users/diegoellis/projects/Ponds_2024/Pond_parameter_data/Mud_2024.csv')
-mud = read.csv('/Users/diegoellis/Desktop/Projects/Postdoc/Pond_2025/Ponds_2024/Pond_parameter_data/Mud_2024.csv')
+mud = read.csv('Data/Mud_2024.csv')
 mud$Tourist_lagoon
 sd(mud$Mud.weight..g., na.rm=T)
 
 
 ggplot(mud, aes(x = Tourist_lagoon, y =Mud.weight..g., fill = Tourist_lagoon)) +
-  geom_boxplot(alpha = .5,scale = "width", trim=FALSE, notch = FALSE) + theme_classic() + ggtitle('Dry mud transported by tortoises \n (n = 35, µ = 412.33, σ = 388.42)') +   theme(plot.title = element_text(hjust = 0.5)) +
+  geom_boxplot(alpha = .5,scale = "width", trim=FALSE, notch = FALSE) + 
+  theme_classic() + 
+  ggtitle('Dry mud transported by tortoises \n (n = 35, µ = 412.33, σ = 388.42)') + 
+  theme(plot.title = element_text(hjust = 0.5)) +
   xlab('Touristic lagoon') + ylab('Mud weight in gramm')
-
-
-ggplot(mud, aes(x = Tourist_lagoon, y =Mud.weight..g., fill = Tourist_lagoon)) +
-  geom_boxplot(alpha = .5,scale = "width", trim=FALSE, notch = FALSE) + theme_bw() + ggtitle(
-    paste0(
-      'Dry mud transported by tortoises \n (n = ', nrow(mud[!is.na(mud$Mud.weight..g.),]),', µ = ', round(mean(mud$Mud.weight..g., na.rm=T)),' , σ = ', round(sd(mud$Mud.weight..g., na.rm=T)), ')' ) 
-  ) +   theme(plot.title = element_text(hjust = 0.5)) + xlab('Touristic lagoon') + ylab('Mud weight in gramm')
-
 
 mud_tort = ggplot(mud, aes(x = Tourist_lagoon, y = Mud.weight..g., fill = Tourist_lagoon)) +
   geom_boxplot(alpha = .5, scale = "width", trim = FALSE, notch = FALSE) +
@@ -51,8 +55,7 @@ ggsave(mud_tort, file = '/Users/diegoellis/projects/Ponds_2024/Figures/mud_tort.
 
 
 # Trap camera data Montemar
-cam_montemar = read.csv('/Users/diegoellis/Desktop/Projects/Postdoc/Pond_2025/Ponds_2024/Camera_Traps/Photo_spreadsheet_montemar_all.csv') |>
-# cam_montemar = read.csv('/Users/diegoellis/projects/Ponds_2024/Camera_Traps/Photo_spreadsheet_montemar_all.csv') |>
+cam_montemar = read.csv('Data/Photo_spreadsheet_montemar_all.csv') |>
   dplyr::mutate(timestamp = mdy(Date),
                 year = year(timestamp),
                 month = month(timestamp),
@@ -74,12 +77,9 @@ cam_montemar = read.csv('/Users/diegoellis/Desktop/Projects/Postdoc/Pond_2025/Po
                 temperature_F,
                 tort_pres, tort_on_land, tort_in_water, total_n_tort,
                 other_animals, which_other_animal,
-                wetland_lvl_raw, wetland_lvl_actual)
-
-
-cam_montemar$hour = hour(lubridate::hms(cam_montemar$time))
-
-
+                wetland_lvl_raw, wetland_lvl_actual) |>
+  dplyr::mutate(hour = hour(lubridate::hms(time)))
+# cam_montemar$hour = hour(lubridate::hms(cam_montemar$time))
 which(cam_montemar$timestamp == max(cam_montemar$timestamp))
 
 ggplot(cam_montemar, aes(x = timestamp, y =total_n_tort)) + geom_point() + geom_smooth()+ylim(0, max(cam_montemar$total_n_tort))
@@ -113,16 +113,8 @@ plyr::ddply(cam_montemar, 'year', function(x){
 
 
 # Get for december only: Hour of the day by month:
-
-# ggplot( cam_montemar[cam_montemar$month ==12,], aes(x = hour, y = tort_in_water)) + geom_smooth() + geom_point()
-
 ggplot( cam_montemar, aes(x = hour, y = tort_in_water)) + geom_smooth() + geom_point() + facet_grid(year~month)
 
-
-# ggplot( cam_montemar, aes(x = hour, y = tort_in_water)) + geom_smooth() + geom_point() + facet_grid(~month)
-
-library(ggplot2)
-library(RColorBrewer)
 
 color_scale <- scale_color_viridis_d(option = "D", end = 0.9)
 

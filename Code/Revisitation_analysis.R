@@ -1,11 +1,24 @@
 # To do: Fix - and + long/lat ponds 
 # Re-run recursive
-
+# Take from other codes: 
 # Do a revisitatin analysis for all tortoises
-
+# for recurse add large buffer around pond of laguna chato
 
 require(viridis)
-require(sp);require(raster);require(tidyverse);require(move);require(sf);require(rgeos);require(rgdal);require(maptools);require(recurse);require(mapview);require(rworldmap);require(lubridate);require(ggmap);require(recurse)
+require(sp)
+require(raster)
+require(tidyverse)
+require(move)
+require(sf)
+require(rgeos)
+require(rgdal)
+require(maptools)
+require(recurse)
+require(mapview)
+require(rworldmap)
+require(lubridate)
+require(ggmap)
+require(recurse)
 
 calculateTimeOfDay = function(locations, datetime)
 {
