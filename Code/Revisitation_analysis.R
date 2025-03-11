@@ -20,26 +20,23 @@ require(tidyverse)
 require(move)
 require(recurse)
 conflicts_prefer(raster::extract)
-loginStored<-movebankLogin(username="Diego_Ellis", password="Atelopus2!")
+loginStored<-movebankLogin(username="XXX", password="XXX!")
 
 all_studies <- getMovebank(entity_type = "study", login=loginStored)
 
 # returns a MoveStack object from the specified study
-tortugas <- getMovebankData(study=2928116, animalName=c("Sir David","Roberto"),
-                            login=loginStored, includeExtraSensors=FALSE, 
-                            removeDuplicatedTimestamps=TRUE, deploymentAsIndividuals=FALSE
-) 
+# tortugas <- getMovebankData(study=2928116, animalName=c("Sir David","Roberto"),
+#                             login=loginStored, includeExtraSensors=FALSE, 
+#                             removeDuplicatedTimestamps=TRUE, deploymentAsIndividuals=FALSE
+# ) 
+# 
+# roberto <- tortugas[[1]]
+# sir_david <- tortugas[[2]]
 
-roberto <- tortugas[[1]]
-sir_david <- tortugas[[2]]
-
-
-# ponds<- read.csv('/Users/diegoellis/Downloads/Master_sheet_2018_2019_2020_ponds.csv') %>% drop_na(Longitude, Latitude)
-
-track_inters = read.csv('/Users/diegoellis/projects/Ponds_2024/Tracking_data/tort_in_ponds_inters_less_columns.csv')
+track_inters = read.csv('Data/tort_in_ponds_inters_less_columns.csv')
 nrow(track_inters)
 
-pond = read.csv('/Users/diegoellis/projects/Ponds_2024/Pond_parameter_data/Galapagos Water Sample Data_2018-24.csv') |> drop_na(Tourist_lagoon, Longitude, Latitude)
+pond = read.csv('Data/Galapagos Water Sample Data_2018-24.csv') |> drop_na(Tourist_lagoon, Longitude, Latitude)
 
 
 pond.spdf <- SpatialPointsDataFrame(coords= ponds[,c('Longitude', 'Latitude')], data = ponds, proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")) # For the Points
