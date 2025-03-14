@@ -2,6 +2,11 @@
 ###
 ###  Galapagos tortoise project - Ecosystem functioning
 ###  
+###  Display mud sampled
+###  PCA loadings
+###  To do: Add shannon index of invertebrates !
+### Add size of all tortoises
+### Add ease of access!
 ###########################################################
 
 require(tidyverse)
@@ -27,7 +32,6 @@ conflicts_prefer(dplyr::summarize)
 conflicts_prefer(dplyr::arrange)
 
 # Trap camera data Montemar
-# mud = read.csv('/Users/diegoellis/projects/Ponds_2024/Pond_parameter_data/Mud_2024.csv')
 mud = read.csv('Data/Mud_2024.csv')
 mud$Tourist_lagoon
 sd(mud$Mud.weight..g., na.rm=T)
@@ -40,6 +44,7 @@ ggplot(mud, aes(x = Tourist_lagoon, y =Mud.weight..g., fill = Tourist_lagoon)) +
   theme(plot.title = element_text(hjust = 0.5)) +
   xlab('Touristic lagoon') + ylab('Mud weight in gramm')
 
+
 mud_tort = ggplot(mud, aes(x = Tourist_lagoon, y = Mud.weight..g., fill = Tourist_lagoon)) +
   geom_boxplot(alpha = .5, scale = "width", trim = FALSE, notch = FALSE) +
   geom_signif(comparisons = list(c("No", "Yes")), 
@@ -50,7 +55,7 @@ mud_tort = ggplot(mud, aes(x = Tourist_lagoon, y = Mud.weight..g., fill = Touris
   xlab('Touristic lagoon') + 
   ylab('Mud weight in gram')
 
-ggsave(mud_tort, file = '/Users/diegoellis/projects/Ponds_2024/Figures/mud_tort.png', width = 10, height = 8)
+ggsave(mud_tort, file = 'Outdir/mud_tort.png', width = 10, height = 8)
 
 
 
@@ -191,7 +196,8 @@ ggplot( cam_montemar, aes(x = hour, y = tort_in_water)) + geom_line()  + facet_g
 # Physicochemical parameters:
 
 # pond = read.csv('/Users/diegoellis/projects/Ponds_2024/Pond_parameter_data/Galapagos Water Sample Data_2018-24.csv') |> drop_na(Tourist_lagoon, Longitude, Latitude)
-pond = read.csv('/Users/diegoellis/Desktop/Projects/Postdoc/Pond_2025/Ponds_2024/Pond_parameter_data/Galapagos Water Sample Data_2018-24_most_up_to_date_2025.csv') |> drop_na(Tourist_lagoon, Longitude, Latitude)
+pond = read.csv('Data/Galapagos Water Sample Data_2018-24_most_up_to_date_2025.csv') |> 
+  drop_na(Tourist_lagoon, Longitude, Latitude)
 
 
 pond$Number_of_tortoises <- gsub("\\+", "", pond$Number_of_tortoises)

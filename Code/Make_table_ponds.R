@@ -1,4 +1,7 @@
 conflicts_prefer(dplyr::filter)
+conflicts_prefer(dplyr::select)
+library(kableExtra)
+library(tidyverse)
 
 df_raw <- read_csv("Data.Galapagos Water Sample Data_2018-24.csv")
 df_raw <- read_csv("Data/Galapagos Water Sample Data_2018-24_most_up_to_date_2025.csv")
@@ -122,19 +125,10 @@ scale_y_continuous(breaks = seq(
 
 
 #--------------------------------------------------
-# 0. Load Packages
-#--------------------------------------------------
-# install.packages("tidyverse")  # if needed
-library(tidyverse)
-
-#--------------------------------------------------
 # 1. Read CSV & Initial Cleaning
 #--------------------------------------------------
-# df <- read.csv(
-#   "/Users/diegoellis/Desktop/Projects/Postdoc/Pond_2025/Ponds_2024/Pond_parameter_data/Galapagos Water Sample Data_2018-24.csv",
-#   stringsAsFactors = FALSE
-# )
-df <- read.csv("/Users/diegoellis/Desktop/Projects/Postdoc/Pond_2025/Ponds_2024/Pond_parameter_data/Galapagos Water Sample Data_2018-24_most_up_to_date_2025.csv",
+
+df <- read.csv("Data/Galapagos Water Sample Data_2018-24_most_up_to_date_2025.csv",
                stringsAsFactors = FALSE)
 df = df[df$GPS_Pond_name %in% keep,]
 
@@ -216,8 +210,8 @@ summary_table <- df %>%
   summarize(
     StartDate = min(Date, na.rm = TRUE),
     EndDate   = max(Date, na.rm = TRUE),
-    # Longitude = mean(Longitude,na.rm=TRUE),
-    # Latitude = mean(Longitude,na.rm=TRUE),                 
+    Longitude = mean(Longitude,na.rm=TRUE),
+    Latitude = mean(Latitude,na.rm=TRUE),
     NumberOfSamplingEvents = n(),
     SampledYears = paste(sort(unique(Year)), collapse = ", "),
     MeasuredMudYN     = if_else(any(MeasuredMud,     na.rm = TRUE), "Yes", "No"),
@@ -258,8 +252,6 @@ summary_table_clean = summary_table |> filter(! GPS_Pond_name %in% c('', '_',
                                                                      'Poza_vigen')) |>
   distinct(GPS_Pond_name)
 
-library(kableExtra)
-
 summary_table_clean %>%
   kbl(caption = "Summary of Pond Sampling Events") %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
@@ -295,7 +287,7 @@ ggplot(summary_table, aes(x = reorder(GPS_Pond_name, -NumberOfSamplingEvents),
 library(tidyverse)
 library(lubridate)
 
-montemar = read.csv('/Users/diegoellis/Desktop/Projects/Postdoc/Pond_2025/Ponds_2024/Camera_Traps/Photo_spreadsheet_montemar_all.csv')
+montemar = read.csv('Data/Photo_spreadsheet_montemar_all.csv')
 
 # Ensure the Date column is properly formatted
 montemar <- montemar %>%
