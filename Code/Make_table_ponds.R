@@ -1,7 +1,14 @@
-conflicts_prefer(dplyr::filter)
-conflicts_prefer(dplyr::select)
+require(conflicted)
 library(kableExtra)
 library(tidyverse)
+library(tidyverse)
+library(geosphere)  # For distance calculations
+library(sf)         # For spatial objects
+library(mapview)    # For interactive maps
+require(leaflet)
+library(mapview)
+conflicts_prefer(dplyr::filter)
+conflicts_prefer(dplyr::select)
 
 df_raw <- read_csv("Data.Galapagos Water Sample Data_2018-24.csv")
 df_raw <- read_csv("Data/Galapagos Water Sample Data_2018-24_most_up_to_date_2025.csv")
