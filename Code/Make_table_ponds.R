@@ -7,11 +7,16 @@ library(sf)         # For spatial objects
 library(mapview)    # For interactive maps
 require(leaflet)
 library(mapview)
+library(tidyverse)
+library(lubridate)
+
 conflicts_prefer(dplyr::filter)
 conflicts_prefer(dplyr::select)
 
-df_raw <- read_csv("Data.Galapagos Water Sample Data_2018-24.csv")
-df_raw <- read_csv("Data/Galapagos Water Sample Data_2018-24_most_up_to_date_2025.csv")
+df_raw <- read_csv(
+  '/Users/diegoellis/Desktop/Projects/Postdoc/Pond_2025/Pond_2025_fieldwork_done/pond_2025_post_fieldwork.csv'
+)
+
 df <- df_raw
 
 df <- df %>%
@@ -26,16 +31,6 @@ df <- df %>%
     )
   ) %>%
   filter(!is.na(Date_parsed))
-
-
-keep = c("P2_Chato_3",  "P_Chato_1",   "P_Laguna_Ch", "P_CM_1" ,     "P_Caseta_1", 
-"P_Caseta_2",  "P_Chato_2",   "P_Manzan_1",  "P_Manzan_2",  "P_Montem_1" ,
-"P_Pikaia_1",  "P_Primic_1",  "P_Primic_2",  "P_Primic_3",  "P_Primic_4" ,
-"P_Primic_5",  "P_Primic_6" , "P_SDB_1" ,    "P_SDB_2" ,    "P_SDB_3"  ,  
-"P1_Chato_3" , "P3_Chato_3"  ,"Poza 3"     , "Poza 4" ,     "Poza 5" ,    
-"Poza 7"  ,    "R_Chato")
-
-df = df[df$GPS_Pond_name %in% keep,]
 
 # Count unique ponds sampled per field day
 df_daily <- df %>%
@@ -78,7 +73,7 @@ season_intervals <- all_dates %>%
   )
 
 
-ggplot() +
+sampling_ponds = ggplot() +
   # (A) Shaded seasonal rectangles
   geom_rect(
     data = season_intervals,
@@ -119,7 +114,7 @@ ggplot() +
     date_labels = "%Y",
     limits = c(
       as.Date("2018-01-01"),  # Adjust if earliest date is earlier
-      as.Date("2025-12-31")   # Adjust if you have data through 2025
+      as.Date("2025-03-31")   # Adjust if you have data through 2025
     )
   ) +
   theme_minimal()+
@@ -128,16 +123,31 @@ scale_y_continuous(breaks = seq(
   0, max(df_daily$NumberOfPondsSampled, na.rm = TRUE), by = 1))  # Whole number axis
 
 
-# Next make a summary table:
+ggsave(sampling_ponds, file = 'Outdir/sampling_ponds.pdf')
 
 
 #--------------------------------------------------
 # 1. Read CSV & Initial Cleaning
 #--------------------------------------------------
 
-df <- read.csv("Data/Galapagos Water Sample Data_2018-24_most_up_to_date_2025.csv",
-               stringsAsFactors = FALSE)
-df = df[df$GPS_Pond_name %in% keep,]
+df <- read.csv(
+  '/Users/diegoellis/Desktop/Projects/Postdoc/Pond_2025/Pond_2025_fieldwork_done/pond_2025_post_fieldwork.csv',
+  stringsAsFactors = FALSE
+)
+
+keep = c("P2_Chato_3",  "P_Chato_1",   "P_Laguna_Ch", "P_CM_1" ,     "P_Caseta_1",
+"P_Caseta_2",  "P_Chato_2",   "P_Manzan_1",  "P_Manzan_2",  "P_Montem_1" ,
+"P_Pikaia_1",  "P_Primic_1",  "P_Primic_2",  "P_Primic_3",  "P_Primic_4" ,
+"P_Primic_5",  "P_Primic_6" , "P_SDB_1" ,    "P_SDB_2" ,    "P_SDB_3"  ,
+"P1_Chato_3" , "P3_Chato_3"  ,"Poza 3"     , "Poza 4" ,     "Poza 5" ,
+"Poza 7"  ,    "R_Chato")
+ 
+ df = df[df$GPS_Pond_name %in% keep,]
+
+
+# df <- read.csv("Data/Galapagos Water Sample Data_2018-24_most_up_to_date_2025.csv",
+#                stringsAsFactors = FALSE)
+# df = df[df$GPS_Pond_name %in% keep,]
 
 #--------------------------------------------------
 # 2. Replace "" with NA & Create New Logical Columns
@@ -267,12 +277,14 @@ summary_table |>
   kbl(caption = "Summary of Pond Sampling Events") %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
 
-write.csv(summary_table, file = '/Users/diegoellis/Desktop/Pond_samples.csv')
+write.csv(summary_table, file = 'Outdir/Pond_samples_2025.csv')
+
 #--------------------------------------------------
 # 5. Plot: Number of Sampling Events by Pond
 #    Rotated/fixed y-axis scale
 #--------------------------------------------------
-ggplot(summary_table, aes(x = reorder(GPS_Pond_name, -NumberOfSamplingEvents),
+
+sampling_events_bar = ggplot(summary_table, aes(x = reorder(GPS_Pond_name, -NumberOfSamplingEvents),
                           y = NumberOfSamplingEvents)) +
   geom_col() +
   coord_flip() +
@@ -286,13 +298,11 @@ ggplot(summary_table, aes(x = reorder(GPS_Pond_name, -NumberOfSamplingEvents),
   ) +
   theme_minimal()
 
+ggsave(sampling_events_bar, file = 'Outdir/sampling_evt_bar.pdf')
 
 # --- --- --- --- --- --- --- --- --- ---
 # Find when montemar had no data
 # --- --- --- --- --- --- --- --- --- ---
-
-library(tidyverse)
-library(lubridate)
 
 montemar = read.csv('Data/Photo_spreadsheet_montemar_all.csv')
 
@@ -317,7 +327,7 @@ sampling_status <- full_date_range %>%
   mutate(Sampled = if_else(Date %in% observed_dates, "Sampled", "Not Sampled"))
 
 # Plot the timeline of sampled vs. missing dates with YEAR & MONTH on x-axis
-ggplot(sampling_status, aes(x = Date, y = 1, color = Sampled)) +
+montemar_sampling = ggplot(sampling_status, aes(x = Date, y = 1, color = Sampled)) +
   geom_point(size = 4, alpha = 0.7) +  # Larger dots to highlight gaps
   scale_color_manual(values = c("Sampled" = "blue", "Not Sampled" = "red")) +  # Color-coded points
   scale_x_date(
@@ -336,6 +346,8 @@ ggplot(sampling_status, aes(x = Date, y = 1, color = Sampled)) +
     axis.ticks.y = element_blank(),  # Remove Y-axis ticks
     axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels for better readability
   )
+
+ggsave(montemar_sampling, file = 'Outdir/montemar_sampling.pdf')
 
 # Find missing dates
 missing_dates <- setdiff(full_date_range$Date, observed_dates)
@@ -360,3 +372,8 @@ cat("❌ Missing Days: ", missing_days, " (", 100 - percent_sampled, "%)\n")
 
 
 unique(df$GPS_Pond_name)
+
+# df_raw <- read_csv("Data/Galapagos Water Sample Data_2018-24.csv")
+# df_raw <- read_csv("Data/Galapagos Water Sample Data_2018-24_most_up_to_date_2025.csv")
+
+

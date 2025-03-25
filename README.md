@@ -14,3 +14,19 @@ Make_table_ponds.R: Create plot and table of sampling across ponds through time
 To do: Add pond size: Small-Medium-Large categorical
 
 Next steps: Re-run recurse analysis with buffers depending on pond size category
+
+Freddy-Christian:  iButton at Montemar, 
+
+### Code book:
+
+find_duplicated_ponds.R: Create a clean file of pond locations.
+
+Make_table_ponds.R: Make a table of sampling regimes of ponds.
+
+Get_precip.R
+
+buffer_ponds.R: Create a buffer around pond locations and create shapefiles for larger ponds
+
+pond_camera_mud.R: Analyze mud transport, trap camera tortoise abundances, PCA of physico-chemical and nutrient analysis
+
+make_map_study.R: Makes a map of tracks, ponds and elevation contours

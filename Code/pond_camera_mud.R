@@ -1,3 +1,7 @@
+# CHANGE SMALL-MEDIUM to MEDIUM AND SMALL RESPECTIVELY ! 
+
+
+
 ###########################################################
 ###
 ###  Galapagos tortoise project - Ecosystem functioning
@@ -32,32 +36,29 @@ conflicts_prefer(dplyr::summarize)
 conflicts_prefer(dplyr::arrange)
 
 # Trap camera data Montemar
-mud = read.csv('Data/Mud_2024.csv')
-mud$Tourist_lagoon
-sd(mud$Mud.weight..g., na.rm=T)
+# mud = read.csv('Data/Mud_2024.csv')
+mud = read.csv('Data/Mud_2024_2025_fieldwork.csv')
+mud$Mud.weight..g. = gsub('TBD', 'NA', mud$Mud.weight..g.)
+mud$Mud.weight..g. = as.numeric(mud$Mud.weight..g.)
+# Remove the ones with 0 mud as we wanna see which ones did transport mud:
 
-
-ggplot(mud, aes(x = Tourist_lagoon, y =Mud.weight..g., fill = Tourist_lagoon)) +
-  geom_boxplot(alpha = .5,scale = "width", trim=FALSE, notch = FALSE) + 
-  theme_classic() + 
-  ggtitle('Dry mud transported by tortoises \n (n = 35, µ = 412.33, σ = 388.42)') + 
-  theme(plot.title = element_text(hjust = 0.5)) +
-  xlab('Touristic lagoon') + ylab('Mud weight in gramm')
-
+mud = mud[mud$Mud.weight..g. > 0,]
+mud = mud[!is.na(mud$Mud.weight..g.),]
 
 mud_tort = ggplot(mud, aes(x = Tourist_lagoon, y = Mud.weight..g., fill = Tourist_lagoon)) +
   geom_boxplot(alpha = .5, scale = "width", trim = FALSE, notch = FALSE) +
   geom_signif(comparisons = list(c("No", "Yes")), 
               map_signif_level = TRUE) +
   theme_classic() + 
-  ggtitle('Dry mud transported by tortoises \n (n = 35, µ = 412.33, σ = 388.42)') +
+  ggtitle(paste0('Dry mud transported by tortoises \n (n = ',
+                 nrow(mud[!is.na(mud$Mud.weight..g.),]),
+                 ', µ = ', round(mean(mud$Mud.weight..g., na.rm=T),1),
+                 ', σ = ', round(sd(mud$Mud.weight..g., na.rm=T), 1))) + 
   theme(plot.title = element_text(hjust = 0.5)) +
   xlab('Touristic lagoon') + 
   ylab('Mud weight in gram')
 
 ggsave(mud_tort, file = 'Outdir/mud_tort.png', width = 10, height = 8)
-
-
 
 # Trap camera data Montemar
 cam_montemar = read.csv('Data/Photo_spreadsheet_montemar_all.csv') |>
@@ -114,8 +115,6 @@ plyr::ddply(cam_montemar, 'year', function(x){
 # 
 # ggplot(cam_df, aes(x = timestamp, y =tort_in_water)) + geom_point() + geom_smooth()+ylim(0, max(cam_df$total_n_tort))+
 #   ggtitle('Median number of tortoises on water per day')
-# 
-
 
 # Get for december only: Hour of the day by month:
 ggplot( cam_montemar, aes(x = hour, y = tort_in_water)) + geom_smooth() + geom_point() + facet_grid(year~month)
@@ -143,10 +142,8 @@ figure_pond_montemar = ggplot(cam_montemar, aes(x = hour, y = tort_in_water)) +
         axis.title.y = element_text(face = "bold", size = 16))
   
   
-  ggsave(figure_pond_montemar, file = '/Users/diegoellis/projects/Ponds_2024/Figures/figure_pond_montemar.png', width = 10, height = 8)
+ggsave(figure_pond_montemar, file = 'Outdir/figure_pond_montemar_2025.png', width = 10, height = 8)
 
-conflicts_prefer(dplyr::summarize)
-conflicts_prefer(dplyr::arrange)
 # Days with the most pond acitibty: 
 cam_montemar <- cam_montemar %>%
   mutate(date = as.Date(timestamp))
@@ -163,43 +160,26 @@ day_with_most_tortoises <- daily_summary %>%
 
 print(day_with_most_tortoises)
 
-
-
 colors <- brewer.pal(12, "Set1")
 # cam_montemar$month <- factor(cam_montemar$month, levels = 1:12, labels = month.name)
 
-ggplot(cam_montemar, aes(x = (hour), y = tort_in_water)) +
-  geom_boxplot(aes(group = factor(hour),alpha = 0.6)) + # Adjust transparency for better overlay visibility
-  geom_smooth(aes(color = factor(month)), method = "loess", linetype = "solid") + # Add smoothing line for each month
-  labs(x = "Hour", y = "Tortoises in Water") +
-  theme_minimal() +
-  theme(legend.title = element_blank()) # Optional: removes legend title
-
-
-ggplot(cam_montemar, aes(x = factor(hour), y = tort_in_water)) +
-  geom_boxplot() +
-  labs(x = "Hour", y = "Tortoises in Water") +
-  theme_minimal()
-
-
-ggplot( cam_montemar, aes(x = hour, y = tort_in_water)) + geom_smooth() + geom_point() + facet_grid(year~month)
-
-
 ggplot( cam_montemar, aes(x = hour, y = tort_in_water)) + geom_smooth()  + facet_grid(year~month)+ggtitle('Tortoises in water per hour')
-
-
-ggplot( cam_montemar, aes(x = hour, y = tort_in_water)) + geom_line()  + facet_grid(year~month)+ggtitle('Tortoises in water per hour')
-
-ggplot( cam_montemar, aes(x = hour, y = tort_in_water)) + geom_line()  + facet_grid(~month)+ggtitle('Tortoises in water per hour')
-
 
 # Physicochemical parameters:
 
 # pond = read.csv('/Users/diegoellis/projects/Ponds_2024/Pond_parameter_data/Galapagos Water Sample Data_2018-24.csv') |> drop_na(Tourist_lagoon, Longitude, Latitude)
+# pond = read.csv('Data/Galapagos Water Sample Data_2018-24_most_up_to_date_2025.csv') |> 
+#   drop_na(Tourist_lagoon, Longitude, Latitude)
+
 pond = read.csv('Data/Galapagos Water Sample Data_2018-24_most_up_to_date_2025.csv') |> 
   drop_na(Tourist_lagoon, Longitude, Latitude)
 
+pond = read.csv(
+'/Users/diegoellis/Desktop/Projects/Postdoc/Pond_2025/Pond_2025_fieldwork_done/pond_2025_post_fieldwork_clean.csv'
+) |> 
+  drop_na(Tourist_lagoon, Longitude, Latitude)
 
+# Convert 25+ and 30+ to numeric
 pond$Number_of_tortoises <- gsub("\\+", "", pond$Number_of_tortoises)
 pond$Number_of_tortoises = as.numeric(pond$Number_of_tortoises)
 
@@ -211,37 +191,29 @@ pond |> group_by(Tourist_lagoon) |> dplyr::summarise(
 )
 
 
-add_negative_sign <- function(x) {
-  ifelse(x > 0, paste0('-', x), x)
-}
+# add_negative_sign <- function(x) {
+#   ifelse(x > 0, paste0('-', x), x)
+# }
 
 # Apply the function to the longitude and latitude columns
-pond$Longitude <- add_negative_sign(pond$Longitude)
-pond$Latitude <- add_negative_sign(pond$Latitude)
-pond$Longitude  = as.numeric(pond$Longitude)
-pond$Latitude  = as.numeric(pond$Latitude)
+# pond$Longitude <- add_negative_sign(pond$Longitude)
+# pond$Latitude <- add_negative_sign(pond$Latitude)
+# pond$Longitude  = as.numeric(pond$Longitude)
+# pond$Latitude  = as.numeric(pond$Latitude)
 pond$Elevation = NA
 
 pond_sp <- SpatialPointsDataFrame(coords = pond[,c('Longitude','Latitude')],data = pond,
                                   proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
 
-SRTM <- raster('/Users/diegoellis/projects/Manuscripts_collab/EcosystemServicesAnimals/2021_marius_tortuga_submision/Tortugas/Data/Elevation/SRTM_Santa_Cruz.tif')
+SRTM = raster('Data/SRTM_Santa_Cruz.tif')
 
 pond_sp <- spTransform(pond_sp, paste0(proj4string(SRTM)))
 
-
 # Add a - if there is not a - in the longitude and same for latitude: ####
 pond_sp$Elevation <- extract(SRTM, pond_sp)
+range(pond_sp$Elevation)
 
-# gsub('30+', '30', pond$Number_of_tortoises)
-# gsub('30+', '30', pond$Number_of_tortoises)
-# gsub('30+', '30', pond$Number_of_tortoises)
 # gsub('', 0, pond$Number_of_tortoises)
-# 
-# |>
-#   mutate( Tourist_lagoon = as.factor(Tourist_lagoon),
-#           Tortoise_presence = as.factor(Tortoise_presence),
-#           Number_of_tortoises = as.integer(Number_of_tortoises))
 
 # Keep only a few variables:
 names(pond)
@@ -257,27 +229,32 @@ pond_sub = pond_sp_df |> dplyr::select(GPS_Pond_name, Elevation, Tourist_lagoon,
                                        YSI_Temperature, YSI_us.ccm,YSI_mS.ccm,
                                        DO., Tortoise_presence, Number_of_tortoises,
                                        NO3..ug.L.,TN..mg.L.,TP..ug.L.,
-                                       NPOC..mg.L., NH4..ug.L., PO4..ug.L.) 
+                                       NPOC..mg.L., NH4..ug.L., PO4..ug.L.,
+                                       Size) 
 # Ojo double check P2 chato 3 where it was if its touristic or not #####
-pond_sub[pond_sub$GPS_Pond_name == 'P2_Chato_3',]$Tourist_lagoon <- 'Yes'
-pond_sub[pond_sub$GPS_Pond_name == 'P_Laguna_Ch',]$Tourist_lagoon <- 'No'
+# pond_sub[pond_sub$GPS_Pond_name == 'P2_Chato_3',]$Tourist_lagoon <- 'Yes'
+# pond_sub[pond_sub$GPS_Pond_name == 'P_Laguna_Ch',]$Tourist_lagoon <- 'No'
 # pond_sub[,c('GPS_Pond_name', 'Tourist_lagoon')]
 pond_sub$Tourist_lagoon = as.factor(pond_sub$Tourist_lagoon)
 
 pond_sub[which(is.na(pond_sub$Tortoise_presence)),]$Tortoise_presence = 'No'
-pond_sub[pond_sub$Tortoise_presence == '',]$Tortoise_presence = 'No'
-pond_sub[136,]$Tortoise_presence = 'No' # "(1 tortuga fuea 20m no turtoguas dentro)"
-pond_sub$Tortoise_presence = as.factor(pond_sub$Tortoise_presence)
 
+pond_sub[pond_sub$Tortoise_presence == '(1 tortuga fuea 20m no turtoguas dentro)',]$Tortoise_presence = 'No'
+
+# pond_sub[136,]$Tortoise_presence = 'No' # "(1 tortuga fuea 20m no turtoguas dentro)"
+
+# pond_sub[pond_sub$Tortoise_presence == '',]$Tortoise_presence = 'No'
+# pond_sub[136,]$Tortoise_presence = 'No' # "(1 tortuga fuea 20m no turtoguas dentro)"
+pond_sub$Tortoise_presence = as.factor(pond_sub$Tortoise_presence)
 
 pond_sub %>% 
   mutate( Tourist_lagoon = as.integer(Tourist_lagoon),Tortoise_presence = as.integer(Tortoise_presence),
           Number_of_tortoises = as.integer(Number_of_tortoises)) %>%
   drop_na()
 
-pond_sub[136,]$YSI_us.ccm = ''
-pond_sub[136,]$YSI_mS.ccm = ''
-pond_sub[136,]$DO. = ''
+# pond_sub[136,]$YSI_us.ccm = ''
+# pond_sub[136,]$YSI_mS.ccm = ''
+# pond_sub[136,]$DO. = ''
 
 # Ojo cambiar esto! Camiar todo a NA manualmente en la tabla ######
 pond_sub$YSI_Temperature = as.numeric(pond_sub$YSI_Temperature)
@@ -285,35 +262,47 @@ pond_sub$YSI_us.ccm = as.numeric(pond_sub$YSI_us.ccm)
 pond_sub$YSI_mS.ccm = as.numeric(pond_sub$YSI_mS.ccm)
 pond_sub$DO.=as.numeric(pond_sub$DO.)
 
-pond_sub[pond_sub$YSI_Temperature == '',]$YSI_Temperature = 'NA'
-nrow(pond_sub[pond_sub$YSI_Temperature == '',])
+# pond_sub[pond_sub$YSI_Temperature == '',]$YSI_Temperature = 'NA'
+# nrow(pond_sub[pond_sub$YSI_Temperature == '',])
 table(is.na(as.numeric(pond_sub$YSI_Temperature)))
 
 pond_sub_clean = pond_sub %>% 
-  mutate( Tourist_lagoon = as.integer(Tourist_lagoon),Tortoise_presence = as.integer(Tortoise_presence),
-          Number_of_tortoises = as.integer(Number_of_tortoises)) %>%
-  drop_na()
+  mutate( Tourist_lagoon = as.integer(Tourist_lagoon),
+          Tortoise_presence = as.integer(Tortoise_presence),
+          Number_of_tortoises = as.integer(Number_of_tortoises)) 
+# %>%
+#   drop_na()
 
 
 # Load SRTM and extract elevaiton for missing values:
-pond_sub_clean[pond_sub_clean$YSI_Temperature=="To shallow to measure",]$YSI_Temperature =''
-
+# pond_sub_clean[pond_sub_clean$YSI_Temperature=="To shallow to measure",]$YSI_Temperature =''
 
 require(corrplot)
 str(pond_sub_clean)
 
-pond_sub_clean_no_nutrients = pond_sub_clean |> dplyr::select(GPS_Pond_name, Elevation, Tourist_lagoon,
-                                                              YSI_Temperature, YSI_us.ccm,YSI_mS.ccm,
-                                                              DO., Tortoise_presence, Number_of_tortoises)
+pond_sub_clean$Size_I = as.numeric(as.factor(pond_sub_clean$Size))
 
-cors=round(cor(pond_sub_clean[,c(-1)]),2)
-corrplot(cors,order = "AOE", addCoef.col = "grey",number.cex=.6, title='With nutrients') # Drop TRI and Slope?!
+# Add ease of access ####
+pond_sub_clean_no_nutrients = pond_sub_clean |> 
+  dplyr::select(GPS_Pond_name, Elevation, Tourist_lagoon,
+                YSI_Temperature, YSI_us.ccm,YSI_mS.ccm,
+                DO., Tortoise_presence, Number_of_tortoises,
+                Size_I) |> drop_na()
 
 cors=round(cor(pond_sub_clean_no_nutrients[,c(-1)]),2)
 corrplot(cors,order = "AOE", addCoef.col = "grey",number.cex=.6, title='No nutrients') # Drop TRI and Slope?!
 
 
-pc1=princomp(pond_sub_clean[,c(-1)], cor=TRUE) # princomp: Make a principal component analyisis. First column of pond is Site and we dont want that. I dont want the country information. 
+tmp_all = pond_sub_clean |> drop_na()
+# Remove Name and Size
+cors=round(cor(tmp_all[,c(-1, -16)]),2)
+corrplot(cors,order = "AOE", addCoef.col = "grey",number.cex=.6, title='With nutrients') # Drop TRI and Slope?!
+
+
+names(tmp_all)
+
+pc1=princomp(tmp_all[,c(-1, -16)], cor=TRUE) # princomp: Make a principal component analyisis. First column of pond is Site and we dont want that. I dont want the country information. 
+# pc1=princomp(pond_sub_clean[,c(-1)], cor=TRUE) # princomp: Make a principal component analyisis. First column of pond is Site and we dont want that. I dont want the country information. 
 names(pc1) # gives us the square roots of the eigenvalues. The laodings the the weights, the coefficient tell us what direciton w eneed to look in. 
 #print results
 print(summary(pc1),digits=2,loadings=pc1$loadings,cutoff=0)
@@ -325,7 +314,7 @@ biplot(pc1,choices=c(1,2),pc.biplot=T)
 
 #################################
 #SECOND, use transformed data
-pc2=princomp(pond_sub_clean[,c(-1)], cor=TRUE)
+pc2=princomp(pond_sub_clean_no_nutrients[,c(-1)], cor=TRUE)
 #print results
 print(summary(pc2),digits=2,loadings=pc2$loadings,cutoff=0)
 #make a screeplot  
@@ -347,12 +336,19 @@ sd(mud$Mud.weight..g., na.rm=T)
 # Plot PCA with colours
 # --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 names(pond_sub_clean)
-df <- pond_sub_clean[,c(-1, -3)]
+
+df <- tmp_all[,c(-1, -16)]
+autoplot(stats::prcomp(df),
+         data = df, colour = 'Tourist_lagoon')
+
 require(ggplot2)
 
-autoplot(prcomp(df), data = pond_sub_clean, colour = 'Tourist_lagoon')
 
-autoplot(prcomp(df), data = pond_sub_clean, colour = 'Tourist_lagoon', label = TRUE, label.size = 3)
+
+autoplot(stats::prcomp(df),
+         data = pond_sub_clean, colour = 'Tourist_lagoon', label = TRUE, label.size = 3)
+
+
 autoplot(prcomp(df), data = pond_sub_clean, colour = 'Tourist_lagoon', loadings = TRUE)
 
 autoplot(prcomp(df), data = pond_sub_clean, colour = 'Tourist_lagoon',
@@ -376,10 +372,9 @@ autoplot(model, data = pond_sub_clean, frame = TRUE, frame.colour = 'Tourist_lag
 # Progression of tortoises in ponds 
 # --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 
-
-
-cam_montemar = read.csv('/Users/diegoellis/projects/Ponds_2024/Camera_Traps/Photo_spreadsheet_montemar_all.csv') |>
-  dplyr::mutate(timestamp = mdy(Date),
+# cam_montemar = read.csv('/Users/diegoellis/projects/Ponds_2024/Camera_Traps/Photo_spreadsheet_montemar_all.csv') |>
+cam_montemar = read.csv('Data/Photo_spreadsheet_montemar_all.csv') |>  
+dplyr::mutate(timestamp = mdy(Date),
                 year = year(timestamp),
                 month = month(timestamp),
                 # hour = hour(hms(time)),
@@ -407,6 +402,9 @@ cam_montemar$hour = hour(lubridate::hms(cam_montemar$time))
 
 
 library(dplyr)
+library(plyr)
+library(ggplot2)
+
 
 # Define time of day categories
 categorize_time_of_day <- function(hour) {
@@ -432,9 +430,6 @@ ddply(cam_montemar_tod, 'month',function(x){
     Median_number_of_tortoises = median(x$tort_in_water, na.rm=T)
   })
 })
-
-library(plyr)
-library(ggplot2)
 
 # Rename 'V1' to 'Median_tort_in_water'
 cam_montemar_tod_summary <- ddply(cam_montemar_tod, 'month', function(x) {
@@ -469,9 +464,9 @@ ggplot(cam_montemar_tod_summary, aes(x = month, y = Median_tort_in_water, color 
 
 # Calculate monthly mean of tort_in_water grouped by time_of_day and month
 monthly_mean_tortoises <- cam_montemar_tod %>%
-  group_by(month, time_of_day) %>%
-  summarise(mean_tort_in_water = mean(tort_in_water, na.rm = TRUE)) %>%
-  arrange(month, time_of_day)
+  dplyr::group_by(month, time_of_day) %>%
+  dplyr::summarise(mean_tort_in_water = mean(tort_in_water, na.rm = TRUE)) %>%
+  dplyr::arrange(month, time_of_day)
 
 # View the results
 print(monthly_mean_tortoises)
