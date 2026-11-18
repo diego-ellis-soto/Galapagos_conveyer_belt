@@ -1,0 +1,158 @@
+# ADD CM AND LC!!!!!
+# ADD differently CM and LC?
+# -Look at differneces pond utilization in natural vs artificial and how often do they visit multiple or single ponds 
+# To do: get recursion at polygon insteaed of at location
+
+require(move)
+require(recurse)
+require(tidyverse)
+require(sf)
+require(sp)
+require(mapview)
+require(lubridate)
+require(conflicted)
+conflicts_prefer(dplyr::mutate)
+conflicts_prefer(dplyr::summarise)
+
+loginStored<-movebankLogin(username="Diego_Ellis", password="Atelopus2!")
+
+all_studies <- getMovebank(entity_type = "study", login=loginStored)
+
+# returns a MoveStack object from the specified study
+# tortugas <- getMovebankData(study=2928116, animalName=c("Sir David",
+#                                                         "Roberto",
+#                                                         'Baronesa',
+#                                                         'Herbert',
+#                                                         'Steve Devine',
+#                                                         'Steve Blake',
+#                                                         'Speedy Gonzales'),
+#                             login=loginStored, includeExtraSensors=FALSE, 
+#                             removeDuplicatedTimestamps=TRUE, deploymentAsIndividuals=FALSE
+# ) 
+# 
+# # Keep only records for the years of the study:
+# tortugas$year = year(tortugas$timestamp)
+# nrow(tortugas)
+# tortugas = tortugas[tortugas$year > 2017,]
+# nrow(tortugas)
+
+# Read the .csv
+inters_tort = read.csv('Outdir/tortoise_names_in_ponds.csv')[,'name']
+
+inters_tort <- trimws(
+  gsub("\\.", " ", inters_tort)
+)
+
+tortugas <- getMovebankData(study=2928116, animalName=
+                              inters_tort,
+                            login=loginStored,
+                            includeExtraSensors=FALSE, 
+                            removeDuplicatedTimestamps=TRUE,
+                            deploymentAsIndividuals=FALSE
+) 
+
+tortugas$year = year(tortugas@timestamps)
+tortugas$id = tortugas@trackId
+# Keep only records for the years of the study:
+tortugas = tortugas[tortugas$year > 2017,]
+tortugas = tortugas[tortugas$year < 2025,]
+
+save(tortugas, file ='Data/tortoises_intersecting_ponds_20260910.Rdata')
+
+tortoise_sf_ponds_df = data.frame(tortugas) |>
+  dplyr::mutate(x = location_long, y = location_lat,t = timestamp )|> dplyr::select(x,y,t, id)
+
+tortoise_sf_ponds_df$t = ymd_hms(tortoise_sf_ponds_df$t)
+
+# # Remove some of the outliers:
+# source('/Users/diegoellis/projects/Phd_Chapter_1/Tortoise_data/Galapagos_2019/NIDOS2019/Datos/Algoritmo_nidos/generic/lib.r')
+# keep<-0.95
+# # keep<-0.90
+# message(paste("Removing outliers: threshold ", (1-keep)*100, " pct.", sep=""))
+# 
+# # Function split my moveobject  and apply a function to each tortoise
+# all_tortuga_clean <- list()
+# all_tortuga_clean <- unlist(lapply(split(tortugas),  
+#                                    function(GPS) # GPS is a move object
+#                                    {
+#                                      oI <- OffIndex(GPS, time.adj=T)
+#                                      GPS$OI <- oI
+#                                      if(any(oI>keep, na.rm=T))
+#                                      {
+#                                        outlier <- coordinates(GPS[which(oI>keep),])
+#                                        message(paste("Removed", nrow(outlier), "outlier location(s)."))
+#                                      }else{
+#                                        message("No outliers found")
+#                                      }
+#                                      GPS_clean <- GPS[which(oI<=keep),]
+#                                      #  GPS_clean$speed <- c(NA, speed(all_tortuga_clean[[1]]))
+#                                      
+#                                    }
+# )
+# )
+# all_tortuga_clean <- moveStack(all_tortuga_clean)
+# all_tortuga_clean_df <- as.data.frame(all_tortuga_clean)
+# 
+# all_tortuga_clean_df$id = all_tortuga_clean_df$local_identifier
+
+# tortoise_sf_ponds_df = data.frame(all_tortuga_clean_df) |> dplyr::mutate(x = location_long, y = location_lat,t = timestamp )|> dplyr::select(x,y,t, id)
+
+# tortoise_sf_ponds_df$t = ymd_hms(tortoise_sf_ponds_df$datetime)
+
+# Load pond data: 
+utm_gal <- "+proj=utm +zone=15 +south +datum=WGS84 +no_defs +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"
+ponds_all = st_read('Outdir/buffered_ponds.shp')
+ponds_all = st_read('Outdir/buffered_ponds_deep_clean.shp')
+# mapview(ponds_all[ponds_all$GPS_Pn_ =='P_CM',])
+
+ponds_all = ponds_all %>%
+  dplyr::mutate(centroid = st_centroid(geometry)) %>%
+  dplyr::mutate(x = st_coordinates(centroid)[, 1],
+                y = st_coordinates(centroid)[, 2]) %>%
+  dplyr::select(-centroid)  # remove centroid column if you don’t need it
+
+# pond.spdf_UTM <- spTransform(ponds_all, utm_gal)
+pond.spdf_UTM_df <- data.frame(ponds_all)
+
+ponds_all_spdf = as(ponds_all, 'Spatial')
+
+
+tortoise_sf_ponds_df <- tortoise_sf_ponds_df 
+# %>%
+#   dplyr::rename(datetime = t)
+
+# Make sure it's a POSIXct:
+tortoise_sf_ponds_df$datetime <- as.POSIXct(tortoise_sf_ponds_df$t)
+
+ponds_sf_wgs84 <- sf::st_transform(ponds_all, crs = 4326)
+
+myprj <- paste0("+proj=laea +lat_0=", round(median(tortoise_sf_ponds_df$y)),' +lon_0=', round(median(tortoise_sf_ponds_df$x)),' +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0')
+
+tortoises_sp = SpatialPointsDataFrame(coords= tortoise_sf_ponds_df[,c('x', 'y')], data = tortoise_sf_ponds_df, proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")) # For the Points
+
+tortoises_sp_laea <- spTransform(tortoises_sp, myprj)
+tortoises_sp_laea_sf <- st_as_sf(tortoises_sp_laea)
+
+pond_uniques_sp = ponds_all_spdf
+pond_uniques_sp_laea <- spTransform(pond_uniques_sp, myprj)
+pond_uniques_sp_laea_sf <- st_as_sf(pond_uniques_sp_laea)
+pond_uniques_sp_laea_df <- data.frame(pond_uniques_sp)|>
+  dplyr::select(x,y,GPS_Pn_)
+pond_coords <- pond_uniques_sp_laea_df[, c("x", "y")]
+
+tortoise_sf_ponds_df = tortoise_sf_ponds_df |> dplyr::select(x,y,t,id)
+
+# This one works: Do without Laguna Chato and Cerro Meso and Steve Di Baen !!!!
+require(recurse)
+recAtLocs <- getRecursionsAtLocations(tortoise_sf_ponds_df, pond_coords, radius = 0.00004486)
+
+summary(recAtLocs$revisitStats$timeInside)
+
+# Plot:
+par(mfrow=c(1,1))
+plot(recAtLocs, tortoise_sf_ponds_df, 
+     alpha = 1, pch = 17, xlim = c(-90.2,-90.45), ylim = c(-0.75, -0.60))
+points(tortoise_sf_ponds_df$x, tortoise_sf_ponds_df$y, pch = ".", col = "gray50")
+points(recAtLocs$revisitStats$x, recAtLocs$revisitStats$y, col = 'red')
+drawCircle(-90.20, -0.7, 0.00004486, lwd = 4)
+
